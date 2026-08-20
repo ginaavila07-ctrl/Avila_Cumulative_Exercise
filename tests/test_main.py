@@ -61,3 +61,18 @@ def test_geocode_location_not_found():
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Location not found"}
+
+
+def test_weather_valid_location():
+    """Return weather information for a valid city and state."""
+    response = client.post("/weather/Pittsburgh/PA")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["city"] == "Pittsburgh"
+    assert data["state"] == "PA"
+    assert "latitude" in data
+    assert "longitude" in data
+    assert "temperature" in data

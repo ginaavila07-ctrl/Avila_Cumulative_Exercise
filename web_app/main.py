@@ -95,6 +95,35 @@ def get_coordinates(city: str, state: str):
     }
 
 
+def get_weather(latitude: float, longitude: float):
+    """Get wather for latitude and longitude."""
+    url = "https://api.open-meteo.com/v1/forecast"
+
+    params: dict[str, Any] = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "current": "temperature_2m",
+        "temperature_unit": "fahrenheit",
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+
+    except requests.exceptions.RequestException:
+        return None
+
+    current = data.get("current")
+
+    if not current:
+        return None
+
+    return {
+        "temperature": current["temperature_2m"],
+    }
+
+
 @avila_app.post("/geocode/{city}/{state}")
 def geocode(city: str, state: str):
     "Validating code to make sure it meet requirements"
@@ -124,4 +153,46 @@ def geocode(city: str, state: str):
         "state": state,
         "latitude": coordinates["latitude"],
         "longitude": coordinates["longitude"],
+    }
+
+
+@avila_app.post("/weather/{city}/{state}")
+def weather(city: str, state: str):
+    """Return current weather for a city and state."""
+
+    city = city.strip()
+
+    if not city:
+        raise HTTPException(status_code=400, detail="City is required")
+
+    state = state.strip().upper()
+
+    if not state:
+        raise HTTPException(status_code=400, detail="State is required")
+
+    if state not in VALID_STATES:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid state. Use a two-letter U.S. state abbreviation",
+        )
+
+    coordinates = get_coordinates(city, state)
+
+    if coordinates is None:
+        raise HTTPException(status_code=404, detail="Location not found")
+
+    weather_data = get_weather(
+        coordinates["latitude"],
+        coordinates["longitude"],
+    )
+
+    if weather_data is None:
+        raise HTTPException(status_code=503, detail="Weather service unavailable")
+
+    return {
+        "city": city,
+        "state": state,
+        "latitude": coordinates["latitude"],
+        "longitude": coordinates["longitude"],
+        "temperature": weather_data["temperature"],
     }
