@@ -1,5 +1,6 @@
 """FastAPI application for geocoding city and state locations."""
 
+from typing import Any
 from fastapi import FastAPI, HTTPException
 import requests
 
@@ -68,7 +69,7 @@ def get_coordinates(city: str, state: str):
     """Get latitude and longitude"""
     url = "https://geocoding-api.open-meteo.com/v1/search"
 
-    params = {
+    params: dict[str, Any] = {
         "name": f"{city},{state}",
         "count": 1,
         "language": "en",
@@ -96,6 +97,7 @@ def get_coordinates(city: str, state: str):
 
 @avila_app.post("/geocode/{city}/{state}")
 def geocode(city: str, state: str):
+    "Validating code to make sure it meet requirements"
 
     city = city.strip()
 

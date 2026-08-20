@@ -1,3 +1,5 @@
+"""Tests for the FastAPI web application."""
+
 from fastapi.testclient import TestClient
 
 from web_app.main import avila_app
@@ -6,6 +8,7 @@ client = TestClient(avila_app)
 
 
 def test_home():
+    """Welcome message"""
     response = client.get("/")
 
     assert response.status_code == 200
@@ -13,6 +16,7 @@ def test_home():
 
 
 def test_geocode_invalid_state():
+    """validation check for stats input"""
     response = client.post("/geocode/Pittsburgh/XX")
 
     assert response.status_code == 400
@@ -22,6 +26,7 @@ def test_geocode_invalid_state():
 
 
 def test_geocode_valid_location():
+    """Latutude and longitude validation input"""
     response = client.post("/geocode/Pittsburgh/PA")
 
     assert response.status_code == 200
@@ -35,6 +40,7 @@ def test_geocode_valid_location():
 
 
 def test_geocode_missing_city():
+    """Validation for city input"""
     response = client.post("/geocode/%20%20/PA")
 
     assert response.status_code == 400
@@ -42,6 +48,7 @@ def test_geocode_missing_city():
 
 
 def test_geocode_missing_state():
+    """Validation for state input to make sure no blank"""
     response = client.post("/geocode/Pittsburgh/%20%20")
 
     assert response.status_code == 400
@@ -49,6 +56,7 @@ def test_geocode_missing_state():
 
 
 def test_geocode_location_not_found():
+    """Response for no city found"""
     response = client.post("/geocode/ThisCityDoesNotExistAnywhere/PA")
 
     assert response.status_code == 404
