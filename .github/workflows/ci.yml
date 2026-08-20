@@ -38,4 +38,4 @@ jobs:
         run: mypy web_app
 
       - name: Unit tests
-        run: pytest
+        run: python -m pytest
